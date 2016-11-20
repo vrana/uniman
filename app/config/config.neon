@@ -22,6 +22,7 @@ services:
 			- add(Adminerng\Drivers\Redis\RedisDriver())
 			- add(Adminerng\Drivers\Memcache\MemcacheDriver())
 			- add(Adminerng\Drivers\RabbitMQ\RabbitMQDriver())
+			- add(Adminerng\Drivers\Elasticsearch\ElasticsearchDriver())
 
 	formatter: Adminerng\Core\Helper\Formatter
 
