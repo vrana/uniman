@@ -20,6 +20,7 @@ services:
 		setup: 
 			- add(Adminerng\Drivers\MySql\MySqlDriver())
 			- add(Adminerng\Drivers\Redis\RedisDriver())
+			- add(Adminerng\Drivers\Redis\PredisDriver())
 			- add(Adminerng\Drivers\Memcache\MemcacheDriver())
 			- add(Adminerng\Drivers\RabbitMQ\RabbitMQDriver())
 

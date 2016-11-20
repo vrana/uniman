@@ -9,6 +9,9 @@ use RedisProxy\RedisProxy;
 
 class RedisDataManager extends AbstractDataManager
 {
+    /**
+     * @var RedisProxy
+     */
     private $connection;
 
     private $itemsCountCache = false;
@@ -297,6 +300,9 @@ class RedisDataManager extends AbstractDataManager
             'expires' => null,
             'avg_ttl' => null,
         ];
+        if (isset($keyspace['Keyspace'])) {
+            return array_merge($info, isset($keyspace['Keyspace']['db' . $db]) ? $keyspace['Keyspace']['db' . $db] : []);
+        }
         if (isset($keyspace['db' . $db])) {
             $dbKeyspace = explode(',', $keyspace['db' . $db]);
             $info['keys'] = explode('=', $dbKeyspace[0])[1];
@@ -319,7 +325,6 @@ class RedisDataManager extends AbstractDataManager
             $function = strtolower($function);
             $results[$command]['headers'] = $this->headers($function);
             $rows = call_user_func_array([$this->connection, $function], $commandParts);
-//            print_R($rows);
             $items = $this->getItems($function, $rows);
             $results[$command]['items'] = $items;
             $results[$command]['count'] = count($items);
