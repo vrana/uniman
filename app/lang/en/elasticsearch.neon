@@ -1,0 +1,23 @@
+name: Elasticsearch
+
+headers:
+	database:
+		index: 'Index'
+		health: 'Health'
+		status: 'Status'
+		primaries: 'Primaries'
+		replicas: 'Replicas'
+		documents_count: 'Documents count'
+		documents_deleted: 'Documents deleted'
+		store_size: 'Store size'
+		primary_store_size: 'Primary store size'
+
+credentials_form:
+	host:
+		label: Host
+	index:
+		label: Index
+database_select_control:
+	database:
+		label: Indices
+		prompt: Select index

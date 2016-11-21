@@ -5,16 +5,20 @@ namespace Adminerng\Drivers\Elasticsearch;
 use Adminerng\Core\DataManager\AbstractDataManager;
 use Adminerng\Core\Multisort;
 use Elasticsearch\Client;
+use Exception;
 
 class ElasticsearchDataManager extends AbstractDataManager
 {
     private $client;
 
+    private $apiClient;
+
     private $index;
 
-    public function __construct(Client $client)
+    public function __construct(Client $client, ElasticsearchApiClient $apiClient)
     {
         $this->client = $client;
+        $this->apiClient = $apiClient;
     }
 
     public function selectDatabase($database)
@@ -24,34 +28,47 @@ class ElasticsearchDataManager extends AbstractDataManager
 
     public function databases(array $sorting = [])
     {
-        $indicesStats = $this->client->indices()->stats();
         $indices = [];
-        foreach ($indicesStats['indices'] as $name => $indice) {
-            $indices[$name] = [
-                'name' => $name,
+        foreach ($this->apiClient->indices() as $index) {
+            $indices[$index['index']] = [
+                'index' => $index['index'],
+                'health' => $index['health'],
+                'status' => $index['status'],
+                'primaries' => $index['pri'],
+                'replicas' => $index['rep'],
+                'documents_count' => $index['docs.count'],
+                'documents_deleted' => $index['docs.deleted'],
+                'store_size' => $index['store.size'],
+                'primary_store_size' => $index['pri.store.size'],
             ];
         }
-        return $indices;
+        return Multisort::sort($indices, $sorting);
     }
 
     public function tables(array $sorting = [])
     {
-        $indice = $this->client->indices()->get(['index' => $this->index]);
+        $index = $this->apiClient->types($this->index);
         $types = [
             ElasticsearchDriver::TYPE_TYPE => [],
         ];
-        foreach ($indice[$this->index]['mappings'] as $type => $typeMapping) {
+        foreach (array_keys($index[$this->index]['mappings']) as $type) {
             $types[ElasticsearchDriver::TYPE_TYPE][$type] = [
                 'type' => $type,
             ];
         }
-        return $types;
+
+        return [
+            ElasticsearchDriver::TYPE_TYPE => Multisort::sort($types[ElasticsearchDriver::TYPE_TYPE], $sorting),
+        ];
     }
 
     public function itemsCount($type, $table, array $filter = [])
     {
-        $stats = $this->client->count(['index' => $this->index, 'type' => $table]);
-        return $stats['count'];
+        if (empty($filter)) {
+            $stats = $this->apiClient->count($this->index, $table);
+            return $stats['count'];
+        }
+        throw new Exception('Elastic search - count with filter. Not yet implemented');
     }
 
     public function items($type, $table, $page, $onPage, array $filter = [], array $sorting = [])
@@ -77,7 +94,9 @@ class ElasticsearchDataManager extends AbstractDataManager
             $item = [
                 '_id' => $hit['_id'],
             ];
-            $item = array_merge($item, $hit['_source']);
+            foreach ($hit['_source'] as $property => $value) {
+                $item[$property] = is_array($value) ? json_encode($value) : $value;
+            }
             $items[$hit['_id']] = $item;
         }
         return $items;

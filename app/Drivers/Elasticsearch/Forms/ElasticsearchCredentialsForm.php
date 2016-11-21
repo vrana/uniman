@@ -9,8 +9,8 @@ class ElasticsearchCredentialsForm implements CredentialsFormInterface
 {
     public function addFieldsToForm(Form $form)
     {
-        $form->addTextArea('hosts', 'elasticsearch.credentials_form.hosts.label')
-            ->setAttribute('placeholder', 'localhost:9200')
-            ->setOption('description', 'elasticsearch.credentials_form.hosts.description');
+        $form->addText('host', 'elasticsearch.credentials_form.host.label')
+            ->setAttribute('placeholder', 'localhost:9200');
+        $form->addText('database', 'elasticsearch.credentials_form.index.label');
     }
 }

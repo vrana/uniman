@@ -10,6 +10,8 @@ class ElasticsearchDriver extends AbstractDriver
 {
     const TYPE_TYPE = 'type';
 
+    private $client;
+
     public function type()
     {
         return 'elasticsearch';
@@ -28,16 +30,17 @@ class ElasticsearchDriver extends AbstractDriver
     public function defaultCredentials()
     {
         return [
-            'hosts' => 'localhost:9200',
+            'host' => 'localhost:9200',
         ];
     }
 
     public function connect(array $credentials)
     {
-        $hosts = array_map('trim', explode("\n", trim($credentials['hosts'])));
+        $host = trim($credentials['host']);
         $this->connection = ClientBuilder::create()
-              ->setHosts($hosts)
+              ->setHosts([$host])
               ->build();
+          $this->client = new ElasticsearchApiClient($host);
     }
 
     protected function getHeaderManager()
@@ -47,6 +50,6 @@ class ElasticsearchDriver extends AbstractDriver
 
     protected function getDataManager()
     {
-        return new ElasticsearchDataManager($this->connection);
+        return new ElasticsearchDataManager($this->connection, $this->client);
     }
 }
